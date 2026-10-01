@@ -74,12 +74,17 @@
       if (!item) return;
       const fairness = item.flags?.fairness || {};
       const reasons = item.flags?.riskReasons || [];
+      const application = item.application;
       const completed = item.decision;
       document.querySelector('#detail').className = 'detail';
       document.querySelector('#detail').innerHTML = `
         <span class="pill ${item.status === 'open' ? 'open' : 'done'}">${item.status}</span>
         <h2>${escapeHtml(item.citizenToken)}</h2><p style="color:var(--muted);margin:0">Ontvangen ${new Date(item.createdAt).toLocaleString('nl-NL')}</p>
         <div class="facts"><div class="fact"><span>Risico</span><strong>${escapeHtml(item.risk)} · ${Math.round(item.riskScore*100)}%</strong></div><div class="fact"><span>Fairness</span><strong>${fairness.passed ? 'Akkoord' : 'Flag: ' + escapeHtml((fairness.forbiddenTerms || []).join(', '))}</strong></div><div class="fact"><span>Redenen</span><strong>${escapeHtml(reasons.join(', ') || 'Geen')}</strong></div></div>
+        <div class="detail-section"><h3>Informatie van de aanvrager</h3>${application ? `
+          <div class="facts"><div class="fact"><span>Voorziening</span><strong>${escapeHtml(application.requestedProvision.replaceAll('_', ' '))}</strong></div><div class="fact"><span>Leeftijdsgroep</span><strong>${escapeHtml(application.ageGroup)}</strong></div><div class="fact"><span>Urgentie</span><strong>${escapeHtml(application.severity)}</strong></div></div>
+          <p style="margin-top:12px"><strong>Beschrijving:</strong><br>${escapeHtml(application.problemDescription)}</p>
+          <p style="margin-top:8px;color:var(--muted)">Meervoudige problematiek: ${application.multipleProblems ? 'ja' : 'nee'}. Persoonsgegevens zijn vóór deze weergave verwijderd of gepseudonimiseerd.</p>` : '<div class="notice warning">De aanvraagtekst is niet beschikbaar voor dit oudere demo-record. Nieuwe aanvragen bevatten de geredigeerde aanvraaginformatie.</div>'}</div>
         <div class="detail-section"><h3>Niet-bindend AI-voorstel</h3><p>${escapeHtml(item.proposal)}</p></div>
         <div class="detail-section"><h3>Onderbouwing</h3><p>${escapeHtml(item.rationale)}</p></div>
         ${completed ? `<div class="detail-section"><div class="notice success"><strong>Beslissing: ${escapeHtml(completed.decision.replace('_',' '))}</strong><br>${escapeHtml(completed.notes)}<br><small>Vastgelegd door ${escapeHtml(completed.reviewerName)} op ${new Date(completed.createdAt).toLocaleString('nl-NL')}</small></div><button id="editDecision" class="button secondary" style="margin-top:12px">Beslissing aanpassen</button></div>` : decisionForm(item.auditId)}`;

@@ -54,6 +54,7 @@ class ReviewService:
             "risk": audit.risk,
             "riskScore": audit.risk_score,
             "flags": audit.flags,
+            "application": audit.flags.get("application") if audit.flags else None,
             "proposal": audit.proposal,
             "rationale": audit.rationale,
             "status": "afgerond" if decision else "open",

@@ -37,7 +37,11 @@ class ProcessingService:
             citizenToken=minimized.citizenToken,
             risk=risk.risk,
             riskScore=risk.riskScore,
-            flags={"fairness": fairness.model_dump(), "riskReasons": risk.reasons},
+            flags={
+                "fairness": fairness.model_dump(),
+                "riskReasons": risk.reasons,
+                "application": minimized.model_dump(exclude={"injectForbiddenTermForTest"}),
+            },
             proposal=proposal.proposal,
             rationale=proposal.rationale,
             route=route,

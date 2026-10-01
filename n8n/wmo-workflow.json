@@ -175,7 +175,7 @@
                 "url": "http://api:8000/audit",
                 "sendBody": true,
                 "specifyBody": "json",
-                "jsonBody": "={{ { citizenToken: $json.minimizedApplication.citizenToken, risk: $json.risk.risk, riskScore: $json.risk.riskScore, flags: { fairness: $json.fairness, riskReasons: $json.risk.reasons }, proposal: $json.proposal.proposal, rationale: $json.proposal.rationale, route: $json.route } }}",
+                "jsonBody": "={{ { citizenToken: $json.minimizedApplication.citizenToken, risk: $json.risk.risk, riskScore: $json.risk.riskScore, flags: { fairness: $json.fairness, riskReasons: $json.risk.reasons, application: { citizenToken: $json.minimizedApplication.citizenToken, ageGroup: $json.minimizedApplication.ageGroup, requestedProvision: $json.minimizedApplication.requestedProvision, problemDescription: $json.minimizedApplication.problemDescription, severity: $json.minimizedApplication.severity, multipleProblems: $json.minimizedApplication.multipleProblems } }, proposal: $json.proposal.proposal, rationale: $json.proposal.rationale, route: $json.route } }}",
                 "options": {}
             },
             "id": "10",

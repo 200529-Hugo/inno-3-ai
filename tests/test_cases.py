@@ -96,6 +96,10 @@ def test_audit_contains_required_decision_fields():
     assert record["proposal"]
     assert record["rationale"]
     assert record["route"] == "automatic_message"
+    assert record["flags"]["application"]["problemDescription"] == BASE["problemDescription"]
+    assert "name" not in record["flags"]["application"]
+    assert "address" not in record["flags"]["application"]
+    assert "birthDate" not in record["flags"]["application"]
 
 
 def test_human_reviewer_can_record_decision():
@@ -105,7 +109,10 @@ def test_human_reviewer_can_record_decision():
 
     queue = client.get("/reviews")
     assert queue.status_code == 200
-    assert any(item["auditId"] == audit_id and item["status"] == "open" for item in queue.json())
+    review_case = next(item for item in queue.json() if item["auditId"] == audit_id)
+    assert review_case["status"] == "open"
+    assert review_case["application"]["requestedProvision"] == "huishoudelijke_hulp"
+    assert review_case["application"]["problemDescription"] == BASE["problemDescription"]
 
     decision = client.post(
         f"/reviews/{audit_id}/decision",
