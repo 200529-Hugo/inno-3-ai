@@ -3,6 +3,8 @@
 ## BPMN-logica
 Gebruik onderstaande Mermaid als snelle visualisatie of teken hem na in draw.io/BPMN-tool.
 
+De importeerbare BPMN 2.0-versie staat in `docs/wmo-process.bpmn`. Gebruik die voor de definitieve afbeelding of screenshot in de presentatie.
+
 ```mermaid
 flowchart LR
     A([Start: WMO-aanvraag]) --> B[Valideer invoer en AI-toestemming]
@@ -15,9 +17,9 @@ flowchart LR
     G --> H[Fairness-check]
     H --> I[Bereken risico]
     I --> J{Hoog risico / ernst hoog / fairness flag?}
-    J -->|ja| K[Menselijke beoordelaar]
+    J -->|ja| K[Routeer naar menselijke beoordelaar]
     J -->|nee| L[Transparant burgerbericht]
-    K --> M[Audit-log]
+    K --> L
     L --> M
     M --> Z
 ```
@@ -37,7 +39,8 @@ flowchart TB
     API --> DB[(PostgreSQL audit log)]
     RISK -->|safe| MSG[Citizen message]
     RISK -->|risk/flag| HUMAN[Human reviewer route]
+    HUMAN --> MSG
 ```
 
 ## Privacygrens
-Persoonsgegevens komen de API binnen voor validatie maar worden vóór de AI-stap verwijderd. De AI-stub krijgt alleen token, leeftijdsgroep, voorziening, beschrijving, ernst en beleidscontext. In een echte productieomgeving moet vrije tekst aanvullend door PII-detectie/redactie en moeten toegang, encryptie, bewaartermijnen en logging uitgebreider worden ingericht.
+Persoonsgegevens komen de API binnen voor validatie maar worden vóór de AI-stap verwijderd. De AI-stub krijgt alleen token, leeftijdsgroep, voorziening, geredigeerde beschrijving, ernst en beleidscontext. De prototype-redactie verwijdert de meegegeven naam, adres, geboortedatum en citizenId plus herkenbare e-mailadressen, Nederlandse telefoonnummers, postcodes, datums en BSN-achtige nummers. In een echte productieomgeving moeten PII-detectie, toegangsbeheer, encryptie, bewaartermijnen en logging aantoonbaar robuuster worden ingericht.

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL"
+  xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI"
+  xmlns:dc="http://www.omg.org/spec/DD/20100524/DC"
+  xmlns:di="http://www.omg.org/spec/DD/20100524/DI"
+  id="Definitions_WMO" targetNamespace="https://example.org/wmo-hackathon">
+  <bpmn:process id="Process_WMO" name="WMO-aanvraag voorbereiden" isExecutable="false">
+    <bpmn:startEvent id="StartEvent_Application" name="Aanvraag ontvangen">
+      <bpmn:outgoing>Flow_1</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:serviceTask id="Task_Validate" name="Valideer aanvraag en AI-toestemming">
+      <bpmn:incoming>Flow_1</bpmn:incoming><bpmn:outgoing>Flow_2</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Valid" name="Geldig?">
+      <bpmn:incoming>Flow_2</bpmn:incoming><bpmn:outgoing>Flow_Invalid</bpmn:outgoing><bpmn:outgoing>Flow_Valid</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:endEvent id="EndEvent_Error" name="Duidelijke validatiefout">
+      <bpmn:incoming>Flow_Invalid</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:serviceTask id="Task_Minimize" name="Minimaliseer en pseudonimiseer">
+      <bpmn:incoming>Flow_Valid</bpmn:incoming><bpmn:outgoing>Flow_3</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Policy" name="Haal beleidsregel op">
+      <bpmn:incoming>Flow_3</bpmn:incoming><bpmn:outgoing>Flow_4</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_AI" name="Genereer voorstel en onderbouwing">
+      <bpmn:incoming>Flow_4</bpmn:incoming><bpmn:outgoing>Flow_5</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Fairness" name="Controleer fairness en onderbouwing">
+      <bpmn:incoming>Flow_5</bpmn:incoming><bpmn:outgoing>Flow_6</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Risk" name="Bereken risico">
+      <bpmn:incoming>Flow_6</bpmn:incoming><bpmn:outgoing>Flow_7</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:exclusiveGateway id="Gateway_Human" name="Menselijke review nodig?">
+      <bpmn:incoming>Flow_7</bpmn:incoming><bpmn:outgoing>Flow_Human</bpmn:outgoing><bpmn:outgoing>Flow_Automatic</bpmn:outgoing>
+    </bpmn:exclusiveGateway>
+    <bpmn:userTask id="Task_Human" name="Zet klaar voor menselijke beoordeling">
+      <bpmn:incoming>Flow_Human</bpmn:incoming><bpmn:outgoing>Flow_8</bpmn:outgoing>
+    </bpmn:userTask>
+    <bpmn:serviceTask id="Task_Message" name="Maak transparant burgerbericht">
+      <bpmn:incoming>Flow_Automatic</bpmn:incoming><bpmn:incoming>Flow_8</bpmn:incoming><bpmn:outgoing>Flow_9</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:serviceTask id="Task_Audit" name="Schrijf audit-log">
+      <bpmn:incoming>Flow_9</bpmn:incoming><bpmn:outgoing>Flow_10</bpmn:outgoing>
+    </bpmn:serviceTask>
+    <bpmn:endEvent id="EndEvent_Done" name="Voorbereiding afgerond">
+      <bpmn:incoming>Flow_10</bpmn:incoming>
+    </bpmn:endEvent>
+
+    <bpmn:sequenceFlow id="Flow_1" sourceRef="StartEvent_Application" targetRef="Task_Validate"/>
+    <bpmn:sequenceFlow id="Flow_2" sourceRef="Task_Validate" targetRef="Gateway_Valid"/>
+    <bpmn:sequenceFlow id="Flow_Invalid" name="nee" sourceRef="Gateway_Valid" targetRef="EndEvent_Error"/>
+    <bpmn:sequenceFlow id="Flow_Valid" name="ja" sourceRef="Gateway_Valid" targetRef="Task_Minimize"/>
+    <bpmn:sequenceFlow id="Flow_3" sourceRef="Task_Minimize" targetRef="Task_Policy"/>
+    <bpmn:sequenceFlow id="Flow_4" sourceRef="Task_Policy" targetRef="Task_AI"/>
+    <bpmn:sequenceFlow id="Flow_5" sourceRef="Task_AI" targetRef="Task_Fairness"/>
+    <bpmn:sequenceFlow id="Flow_6" sourceRef="Task_Fairness" targetRef="Task_Risk"/>
+    <bpmn:sequenceFlow id="Flow_7" sourceRef="Task_Risk" targetRef="Gateway_Human"/>
+    <bpmn:sequenceFlow id="Flow_Human" name="ja" sourceRef="Gateway_Human" targetRef="Task_Human"/>
+    <bpmn:sequenceFlow id="Flow_Automatic" name="nee" sourceRef="Gateway_Human" targetRef="Task_Message"/>
+    <bpmn:sequenceFlow id="Flow_8" sourceRef="Task_Human" targetRef="Task_Message"/>
+    <bpmn:sequenceFlow id="Flow_9" sourceRef="Task_Message" targetRef="Task_Audit"/>
+    <bpmn:sequenceFlow id="Flow_10" sourceRef="Task_Audit" targetRef="EndEvent_Done"/>
+  </bpmn:process>
+
+  <bpmndi:BPMNDiagram id="Diagram_WMO">
+    <bpmndi:BPMNPlane id="Plane_WMO" bpmnElement="Process_WMO">
+      <bpmndi:BPMNShape id="StartEvent_Application_di" bpmnElement="StartEvent_Application"><dc:Bounds x="80" y="172" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Validate_di" bpmnElement="Task_Validate"><dc:Bounds x="150" y="150" width="130" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Valid_di" bpmnElement="Gateway_Valid" isMarkerVisible="true"><dc:Bounds x="320" y="165" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Error_di" bpmnElement="EndEvent_Error"><dc:Bounds x="327" y="300" width="36" height="36"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Minimize_di" bpmnElement="Task_Minimize"><dc:Bounds x="410" y="150" width="140" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Policy_di" bpmnElement="Task_Policy"><dc:Bounds x="590" y="150" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_AI_di" bpmnElement="Task_AI"><dc:Bounds x="750" y="150" width="150" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Fairness_di" bpmnElement="Task_Fairness"><dc:Bounds x="940" y="150" width="150" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Risk_di" bpmnElement="Task_Risk"><dc:Bounds x="1130" y="150" width="110" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Gateway_Human_di" bpmnElement="Gateway_Human" isMarkerVisible="true"><dc:Bounds x="1280" y="165" width="50" height="50"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Human_di" bpmnElement="Task_Human"><dc:Bounds x="1370" y="70" width="140" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Message_di" bpmnElement="Task_Message"><dc:Bounds x="1370" y="230" width="150" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Task_Audit_di" bpmnElement="Task_Audit"><dc:Bounds x="1570" y="150" width="120" height="80"/></bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="EndEvent_Done_di" bpmnElement="EndEvent_Done"><dc:Bounds x="1730" y="172" width="36" height="36"/></bpmndi:BPMNShape>
+
+      <bpmndi:BPMNEdge id="Flow_1_di" bpmnElement="Flow_1"><di:waypoint x="116" y="190"/><di:waypoint x="150" y="190"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_2_di" bpmnElement="Flow_2"><di:waypoint x="280" y="190"/><di:waypoint x="320" y="190"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Invalid_di" bpmnElement="Flow_Invalid"><di:waypoint x="345" y="215"/><di:waypoint x="345" y="300"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Valid_di" bpmnElement="Flow_Valid"><di:waypoint x="370" y="190"/><di:waypoint x="410" y="190"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_3_di" bpmnElement="Flow_3"><di:waypoint x="550" y="190"/><di:waypoint x="590" y="190"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_4_di" bpmnElement="Flow_4"><di:waypoint x="710" y="190"/><di:waypoint x="750" y="190"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_5_di" bpmnElement="Flow_5"><di:waypoint x="900" y="190"/><di:waypoint x="940" y="190"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_6_di" bpmnElement="Flow_6"><di:waypoint x="1090" y="190"/><di:waypoint x="1130" y="190"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_7_di" bpmnElement="Flow_7"><di:waypoint x="1240" y="190"/><di:waypoint x="1280" y="190"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Human_di" bpmnElement="Flow_Human"><di:waypoint x="1305" y="165"/><di:waypoint x="1305" y="110"/><di:waypoint x="1370" y="110"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_Automatic_di" bpmnElement="Flow_Automatic"><di:waypoint x="1305" y="215"/><di:waypoint x="1305" y="270"/><di:waypoint x="1370" y="270"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_8_di" bpmnElement="Flow_8"><di:waypoint x="1510" y="110"/><di:waypoint x="1540" y="110"/><di:waypoint x="1540" y="270"/><di:waypoint x="1520" y="270"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_9_di" bpmnElement="Flow_9"><di:waypoint x="1520" y="270"/><di:waypoint x="1630" y="270"/><di:waypoint x="1630" y="230"/></bpmndi:BPMNEdge>
+      <bpmndi:BPMNEdge id="Flow_10_di" bpmnElement="Flow_10"><di:waypoint x="1690" y="190"/><di:waypoint x="1730" y="190"/></bpmndi:BPMNEdge>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>

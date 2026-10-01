@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WMO Kompas — verantwoord voorbereiden</title>
+  <style>
+    :root {
+      --ink: #17233c;
+      --muted: #667085;
+      --paper: #f6f4ee;
+      --card: #fffdf8;
+      --line: #dedbd1;
+      --blue: #2856a3;
+      --blue-soft: #e8eef9;
+      --teal: #087c70;
+      --teal-soft: #dff4ef;
+      --amber: #b5560a;
+      --amber-soft: #fff0d8;
+      --red: #b42318;
+      --red-soft: #fee9e7;
+      --shadow: 0 14px 40px rgba(23, 35, 60, .08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 90% -10%, rgba(40, 86, 163, .12), transparent 34rem),
+        var(--paper);
+      font: 15px/1.55 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .shell { max-width: 1440px; margin: 0 auto; padding: 0 28px 44px; }
+    .topbar {
+      min-height: 76px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(23, 35, 60, .1);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; letter-spacing: -.02em; }
+    .mark {
+      width: 38px; height: 38px; border-radius: 11px;
+      display: grid; place-items: center; color: white;
+      background: linear-gradient(135deg, var(--blue), var(--teal));
+      box-shadow: 0 7px 18px rgba(40, 86, 163, .23);
+    }
+    .brand small { display: block; color: var(--muted); font-weight: 600; letter-spacing: .03em; font-size: 10px; text-transform: uppercase; }
+    .status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13px; }
+    .dot { width: 8px; height: 8px; border-radius: 99px; background: #98a2b3; box-shadow: 0 0 0 4px rgba(152,162,179,.14); }
+    .dot.live { background: #12a477; box-shadow: 0 0 0 4px rgba(18,164,119,.14); }
+    .hero { display: flex; justify-content: space-between; gap: 28px; align-items: end; padding: 42px 0 28px; }
+    .eyebrow { color: var(--blue); font-size: 12px; font-weight: 800; letter-spacing: .11em; text-transform: uppercase; }
+    h1 { margin: 7px 0 8px; font-family: Georgia, 'Times New Roman', serif; font-size: clamp(34px, 4vw, 57px); line-height: 1.04; letter-spacing: -.035em; font-weight: 700; }
+    .hero p { margin: 0; max-width: 720px; color: var(--muted); font-size: 16px; }
+    .hero-note { max-width: 330px; background: var(--blue-soft); color: #244880; border-radius: 14px; padding: 14px 16px; font-size: 13px; }
+    .metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 18px; }
+    .metric, .panel { background: rgba(255,253,248,.88); border: 1px solid var(--line); box-shadow: var(--shadow); }
+    .metric { border-radius: 17px; padding: 18px 19px; }
+    .metric-label { color: var(--muted); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+    .metric-value { font-size: 28px; font-weight: 800; margin-top: 4px; letter-spacing: -.03em; }
+    .grid { display: grid; grid-template-columns: minmax(360px, .86fr) minmax(440px, 1.14fr); gap: 18px; align-items: start; }
+    .panel { border-radius: 20px; overflow: hidden; }
+    .panel-head { padding: 19px 22px 15px; border-bottom: 1px solid var(--line); display: flex; align-items: center; justify-content: space-between; gap: 14px; }
+    .panel-head h2 { margin: 0; font-size: 18px; letter-spacing: -.02em; }
+    .panel-head p { margin: 2px 0 0; color: var(--muted); font-size: 12px; }
+    .panel-body { padding: 21px 22px 23px; }
+    .scenarios { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; margin-bottom: 20px; }
+    .scenario {
+      border: 1px solid var(--line); background: #fff; color: var(--ink); text-align: left;
+      border-radius: 12px; padding: 11px 12px; transition: .16s ease;
+    }
+    .scenario:hover { transform: translateY(-1px); border-color: #9aaed2; box-shadow: 0 6px 16px rgba(23,35,60,.07); }
+    .scenario strong { display: block; font-size: 13px; }
+    .scenario span { color: var(--muted); font-size: 11px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    label { display: grid; gap: 5px; color: #344054; font-size: 12px; font-weight: 700; }
+    .wide { grid-column: 1 / -1; }
+    input, select, textarea {
+      width: 100%; border: 1px solid #cfcbbf; border-radius: 10px; background: #fff;
+      padding: 10px 11px; color: var(--ink); outline: none; transition: .15s ease;
+    }
+    input:focus, select:focus, textarea:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(40,86,163,.12); }
+    textarea { min-height: 88px; resize: vertical; }
+    .checkline { display: flex; align-items: center; gap: 8px; font-weight: 600; }
+    .checkline input { width: auto; accent-color: var(--blue); }
+    .submit {
+      width: 100%; border: 0; border-radius: 11px; padding: 12px 16px; margin-top: 15px;
+      color: #fff; background: var(--blue); font-weight: 800; box-shadow: 0 8px 18px rgba(40,86,163,.22);
+    }
+    .submit:disabled { opacity: .6; cursor: wait; }
+    .result-empty { min-height: 430px; display: grid; place-items: center; text-align: center; color: var(--muted); }
+    .result-empty .icon { margin: 0 auto 14px; width: 54px; height: 54px; border-radius: 16px; display: grid; place-items: center; background: var(--blue-soft); color: var(--blue); font-size: 25px; }
+    .result-top { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 18px; }
+    .result-top h3 { margin: 5px 0 0; font-size: 23px; letter-spacing: -.03em; }
+    .pill { display: inline-flex; align-items: center; border-radius: 99px; padding: 5px 9px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; }
+    .pill.safe { background: var(--teal-soft); color: var(--teal); }
+    .pill.review { background: var(--amber-soft); color: var(--amber); }
+    .pill.fail { background: var(--red-soft); color: var(--red); }
+    .score { min-width: 86px; text-align: right; }
+    .score strong { font-size: 28px; line-height: 1; }
+    .score small { display: block; color: var(--muted); }
+    .message { border-left: 4px solid var(--blue); background: var(--blue-soft); border-radius: 0 12px 12px 0; padding: 13px 15px; margin: 15px 0; }
+    .message small, .section-label { display: block; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; font-weight: 800; font-size: 10px; margin-bottom: 5px; }
+    .facts { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 15px 0; }
+    .fact { background: #fff; border: 1px solid var(--line); border-radius: 11px; padding: 11px 12px; }
+    .fact span { display: block; color: var(--muted); font-size: 11px; }
+    .fact strong { font-size: 13px; }
+    .privacy { border-radius: 13px; border: 1px dashed #95a9ce; padding: 13px 14px; background: #fafcff; }
+    .privacy code { display: block; white-space: normal; color: #32486e; font: 11px/1.55 ui-monospace, SFMono-Regular, Menlo, monospace; }
+    .alert { border-radius: 12px; padding: 14px 15px; color: var(--red); background: var(--red-soft); }
+    .audit { margin-top: 18px; }
+    .audit .panel-body { padding: 0; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 790px; }
+    th, td { text-align: left; padding: 12px 15px; border-bottom: 1px solid var(--line); font-size: 12px; vertical-align: top; }
+    th { color: var(--muted); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; background: rgba(246,244,238,.7); }
+    tr:last-child td { border-bottom: 0; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+    .refresh { border: 1px solid var(--line); background: #fff; border-radius: 9px; padding: 7px 10px; color: var(--ink); font-weight: 700; font-size: 12px; }
+    .foot { color: var(--muted); text-align: center; font-size: 11px; margin-top: 20px; }
+    @media (max-width: 900px) {
+      .hero { display: block; }
+      .hero-note { margin-top: 18px; max-width: none; }
+      .metrics { grid-template-columns: 1fr 1fr; }
+      .grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 560px) {
+      .shell { padding: 0 14px 28px; }
+      .status span:last-child { display: none; }
+      .metrics, .scenarios, .form-grid, .facts { grid-template-columns: 1fr; }
+      .wide { grid-column: auto; }
+      .hero { padding-top: 28px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <div class="brand"><div class="mark">W</div><div>WMO Kompas<small>beslisondersteuning</small></div></div>
+      <div class="status"><span id="healthDot" class="dot"></span><span id="healthText">Services controleren…</span></div>
+    </header>
+
+    <section class="hero">
+      <div>
+        <div class="eyebrow">Menselijk waar het moet, slim waar het kan</div>
+        <h1>Transparante voorbereiding<br>van WMO-aanvragen.</h1>
+        <p>Een demonstratieomgeving voor privacyvriendelijke AI-ondersteuning. De AI bereidt voor; een bevoegde medewerker blijft verantwoordelijk.</p>
+      </div>
+      <div class="hero-note"><strong>Alleen synthetische gegevens.</strong><br>Gebruik dit prototype niet voor echte aanvragen of persoonsgegevens.</div>
+    </section>
+
+    <section class="metrics" aria-label="Auditoverzicht">
+      <div class="metric"><div class="metric-label">Verwerkt</div><div id="metricTotal" class="metric-value">—</div></div>
+      <div class="metric"><div class="metric-label">Automatisch bericht</div><div id="metricAuto" class="metric-value">—</div></div>
+      <div class="metric"><div class="metric-label">Menselijke review</div><div id="metricHuman" class="metric-value">—</div></div>
+      <div class="metric"><div class="metric-label">Fairness-flags</div><div id="metricFlags" class="metric-value">—</div></div>
+    </section>
+
+    <section class="grid">
+      <article class="panel">
+        <div class="panel-head"><div><h2>Nieuwe demo-aanvraag</h2><p>Kies een testcase of stel synthetische invoer samen.</p></div></div>
+        <div class="panel-body">
+          <div class="scenarios">
+            <button class="scenario" data-scenario="low"><strong>1 · Laag risico</strong><span>Automatisch burgerbericht</span></button>
+            <button class="scenario" data-scenario="high"><strong>2 · Hoog risico</strong><span>Menselijke beoordeling</span></button>
+            <button class="scenario" data-scenario="fairness"><strong>3 · Fairness-flag</strong><span>Verboden term detecteren</span></button>
+            <button class="scenario" data-scenario="consent"><strong>4 · Geen toestemming</strong><span>Duidelijke validatiefout</span></button>
+          </div>
+          <form id="applicationForm">
+            <div class="form-grid">
+              <label>Test-ID<input name="citizenId" value="SYNTH-DASH-001" required></label>
+              <label>Leeftijdsgroep<select name="ageGroup"><option>0-17</option><option>18-34</option><option>35-49</option><option>50-64</option><option selected>65-74</option><option>75+</option></select></label>
+              <label>Voorziening<select name="requestedProvision"><option value="huishoudelijke_hulp">Huishoudelijke hulp</option><option value="rolstoel">Rolstoel</option><option value="woningaanpassing">Woningaanpassing</option></select></label>
+              <label>Ernst<select name="severity"><option value="laag">Laag</option><option value="middel">Middel</option><option value="hoog">Hoog</option></select></label>
+              <label class="wide">Probleembeschrijving<textarea name="problemDescription" required>Beperkte mobiliteit en hulp nodig bij zwaar huishoudelijk werk.</textarea></label>
+              <label class="checkline"><input type="checkbox" name="multipleProblems"> Meervoudige problematiek</label>
+              <label class="checkline"><input type="checkbox" name="aiConsent" checked> Toestemming voor AI-voorbereiding</label>
+              <label class="wide">Testterm voor fairness<input name="injectForbiddenTermForTest" placeholder="Alleen voor testcase 3"></label>
+            </div>
+            <button id="submitButton" class="submit" type="submit">Aanvraag veilig voorbereiden</button>
+          </form>
+        </div>
+      </article>
+
+      <article class="panel">
+        <div class="panel-head"><div><h2>Uitkomst en uitleg</h2><p>Route, risico, fairness en privacygrens in één overzicht.</p></div></div>
+        <div id="result" class="panel-body result-empty"><div><div class="icon">◇</div><strong>Nog geen aanvraag verwerkt</strong><br>Kies links een testcase om de beslisroute te bekijken.</div></div>
+      </article>
+    </section>
+
+    <section class="panel audit">
+      <div class="panel-head"><div><h2>Audit-log</h2><p>Laatste 100 succesvolle voorbereidingen uit PostgreSQL.</p></div><button id="refreshAudit" class="refresh">Vernieuwen</button></div>
+      <div class="panel-body"><table><thead><tr><th>Tijd</th><th>Token</th><th>Route</th><th>Risico</th><th>Fairness</th><th>Voorstel</th></tr></thead><tbody id="auditRows"><tr><td colspan="6">Audit-log laden…</td></tr></tbody></table></div>
+    </section>
+    <div class="foot">Onderwijsprototype · geen formele WMO-besluiten · een mens blijft eindverantwoordelijk</div>
+  </main>
+
+  <script>
+    const scenarios = {
+      low: {citizenId:'SYNTH-001', ageGroup:'65-74', requestedProvision:'huishoudelijke_hulp', problemDescription:'Beperkte mobiliteit en hulp nodig bij zwaar huishoudelijk werk.', severity:'laag', multipleProblems:false, aiConsent:true, injectForbiddenTermForTest:''},
+      high: {citizenId:'SYNTH-002', ageGroup:'75+', requestedProvision:'woningaanpassing', problemDescription:'Meerdere beperkingen maken veilig gebruik van de woning moeilijk.', severity:'hoog', multipleProblems:true, aiConsent:true, injectForbiddenTermForTest:''},
+      fairness: {citizenId:'SYNTH-003', ageGroup:'65-74', requestedProvision:'rolstoel', problemDescription:'Langdurige mobiliteitsbeperking beperkt zelfstandig verplaatsen.', severity:'laag', multipleProblems:false, aiConsent:true, injectForbiddenTermForTest:'religie'},
+      consent: {citizenId:'SYNTH-004', ageGroup:'50-64', requestedProvision:'huishoudelijke_hulp', problemDescription:'Ondersteuning nodig bij huishoudelijke taken.', severity:'laag', multipleProblems:false, aiConsent:false, injectForbiddenTermForTest:''}
+    };
+    const form = document.querySelector('#applicationForm');
+    const result = document.querySelector('#result');
+    const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+    function setForm(data) {
+      Object.entries(data).forEach(([key, value]) => {
+        const field = form.elements[key];
+        if (!field) return;
+        if (field.type === 'checkbox') field.checked = value;
+        else field.value = value;
+      });
+    }
+
+    function payloadFromForm() {
+      const data = new FormData(form);
+      return {
+        citizenId: data.get('citizenId'), name: 'Synthetische Burger', address: 'Demostraat 1', birthDate: '1955-01-01',
+        ageGroup: data.get('ageGroup'), requestedProvision: data.get('requestedProvision'),
+        problemDescription: data.get('problemDescription'), severity: data.get('severity'),
+        multipleProblems: data.has('multipleProblems'), aiConsent: data.has('aiConsent'),
+        injectForbiddenTermForTest: data.get('injectForbiddenTermForTest') || null
+      };
+    }
+
+    async function processApplication(payload) {
+      const button = document.querySelector('#submitButton');
+      button.disabled = true; button.textContent = 'Veilig verwerken…';
+      try {
+        const response = await fetch('/process', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        const data = await response.json();
+        if (!response.ok) throw new Error(Array.isArray(data.detail) ? data.detail.join(' ') : (data.detail || 'Verwerking mislukt'));
+        renderResult(data, payload);
+        await loadAudit();
+      } catch (error) {
+        result.className = 'panel-body';
+        result.innerHTML = `<div class="alert"><span class="section-label">Validatie gestopt vóór AI</span><strong>${escapeHtml(error.message)}</strong></div><div class="privacy" style="margin-top:14px"><span class="section-label">Privacygarantie</span><code>Er is geen voorstel gegenereerd en er zijn geen persoonsgegevens naar de AI-stap gegaan.</code></div>`;
+      } finally {
+        button.disabled = false; button.textContent = 'Aanvraag veilig voorbereiden';
+      }
+    }
+
+    function renderResult(data, original) {
+      const human = data.route === 'human_review';
+      const fairness = data.fairness.passed;
+      const terms = data.fairness.forbiddenTerms.length ? data.fairness.forbiddenTerms.join(', ') : 'Geen verboden termen';
+      result.className = 'panel-body';
+      result.innerHTML = `
+        <div class="result-top"><div><span class="pill ${human ? 'review' : 'safe'}">${human ? 'Menselijke review' : 'Automatisch bericht'}</span><h3>${human ? 'Een medewerker neemt het over' : 'Laag-risico voorbereiding afgerond'}</h3></div><div class="score"><strong>${Math.round(data.risk.riskScore * 100)}%</strong><small>risicoscore</small></div></div>
+        <div class="facts">
+          <div class="fact"><span>Fairness</span><strong class="${fairness ? '' : 'pill fail'}">${fairness ? 'Geslaagd' : 'Flag: ' + escapeHtml(terms)}</strong></div>
+          <div class="fact"><span>Pseudoniem</span><strong class="mono">${escapeHtml(data.minimizedApplication.citizenToken)}</strong></div>
+          <div class="fact"><span>Voorziening</span><strong>${escapeHtml(data.minimizedApplication.requestedProvision.replaceAll('_',' '))}</strong></div>
+          <div class="fact"><span>Risicoreden</span><strong>${escapeHtml(data.risk.reasons.join(', ') || 'Geen verhoogd risico')}</strong></div>
+        </div>
+        <div class="message"><small>Bericht aan de burger</small>${escapeHtml(data.citizenMessage)}</div>
+        <div><span class="section-label">Niet-bindend AI-voorstel</span>${escapeHtml(data.proposal.proposal)}<br><small>${escapeHtml(data.proposal.rationale)}</small></div>
+        <div class="privacy" style="margin-top:15px"><span class="section-label">Wat passeerde de AI-grens?</span><code>${escapeHtml(JSON.stringify(data.minimizedApplication))}</code><span class="section-label" style="margin-top:9px">Bewust verwijderd</span><code>name · address · birthDate · direct citizenId</code></div>`;
+    }
+
+    async function loadAudit() {
+      try {
+        const response = await fetch('/audit');
+        const rows = await response.json();
+        document.querySelector('#metricTotal').textContent = rows.length;
+        document.querySelector('#metricAuto').textContent = rows.filter(r => r.route === 'automatic_message').length;
+        document.querySelector('#metricHuman').textContent = rows.filter(r => r.route === 'human_review').length;
+        document.querySelector('#metricFlags').textContent = rows.filter(r => r.flags?.fairness?.passed === false).length;
+        document.querySelector('#auditRows').innerHTML = rows.length ? rows.map(r => `
+          <tr><td>${new Date(r.createdAt).toLocaleString('nl-NL')}</td><td class="mono">${escapeHtml(r.citizenToken)}</td><td><span class="pill ${r.route === 'human_review' ? 'review' : 'safe'}">${r.route === 'human_review' ? 'review' : 'bericht'}</span></td><td>${escapeHtml(r.risk)} · ${Math.round(r.riskScore*100)}%</td><td>${r.flags?.fairness?.passed ? '✓ akkoord' : '⚑ ' + escapeHtml((r.flags?.fairness?.forbiddenTerms || []).join(', '))}</td><td>${escapeHtml(r.proposal)}</td></tr>`).join('') : '<tr><td colspan="6">Nog geen auditregels.</td></tr>';
+      } catch (_) {
+        document.querySelector('#auditRows').innerHTML = '<tr><td colspan="6">Audit-log kon niet worden geladen.</td></tr>';
+      }
+    }
+
+    async function checkHealth() {
+      try {
+        const response = await fetch('/health');
+        if (!response.ok) throw new Error();
+        document.querySelector('#healthDot').classList.add('live');
+        document.querySelector('#healthText').textContent = 'API en audit online';
+      } catch (_) { document.querySelector('#healthText').textContent = 'Service niet bereikbaar'; }
+    }
+
+    document.querySelectorAll('[data-scenario]').forEach(button => button.addEventListener('click', () => { const data = scenarios[button.dataset.scenario]; setForm(data); processApplication({...data, name:'Test Persoon', address:'Teststraat 1', birthDate:'1955-01-01'}); }));
+    form.addEventListener('submit', event => { event.preventDefault(); processApplication(payloadFromForm()); });
+    document.querySelector('#refreshAudit').addEventListener('click', loadAudit);
+    checkHealth(); loadAudit();
+  </script>
+</body>
+</html>

@@ -22,7 +22,7 @@ De AI ondersteunt uitsluitend het voorbereiden van een WMO-aanvraag. De AI neemt
 Vriendelijk, duidelijk, professioneel, B1 waar mogelijk. Geen juridisch jargon zonder uitleg. Scheid feiten, voorstel en onzekerheid.
 
 ## Privacy
-AI-input bevat alleen citizenToken, leeftijdsgroep, voorziening, relevante probleembeschrijving, ernst en beleidscontext. Echte persoonsgegevens worden niet gebruikt in de hackathon. Vrije tekst wordt in een productieversie aanvullend op PII gescand/redacted.
+AI-input bevat alleen citizenToken, leeftijdsgroep, voorziening, geredigeerde relevante probleembeschrijving, ernst en beleidscontext. Echte persoonsgegevens worden niet gebruikt in de hackathon. De prototype-service redigeert gestructureerde persoonsgegevens en herkenbare e-mailadressen, telefoonnummers, postcodes, datums en BSN-achtige nummers uit vrije tekst. Voor productie is aanvullende, aantoonbaar betrouwbare PII-detectie nodig.
 
 ## Fairness
 Output wordt na generatie automatisch gecontroleerd op verboden kenmerken/termen. Een fairness-flag leidt altijd tot menselijke review. Een woordenlijst alleen is geen volledige fairness-oplossing; dit prototype demonstreert de controlestap.

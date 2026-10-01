@@ -1,113 +1,80 @@
 {
+  "id": "WMOHackathonDemo1",
   "name": "WMO AI Privacy-by-Design Prototype",
   "nodes": [
     {
-      "parameters": {
-        "httpMethod": "POST",
-        "path": "wmo-application",
-        "responseMode": "responseNode",
-        "options": {}
-      },
-      "id": "1",
-      "name": "Receive WMO Application",
-      "type": "n8n-nodes-base.webhook",
-      "typeVersion": 2,
-      "position": [-600, 0],
-      "webhookId": "wmo-hackathon-demo"
+      "parameters": {"httpMethod": "POST", "path": "wmo-application", "responseMode": "responseNode", "options": {}},
+      "id": "1", "name": "Receive WMO Application", "type": "n8n-nodes-base.webhook", "typeVersion": 2,
+      "position": [-1080, 0], "webhookId": "wmo-hackathon-demo"
     },
     {
-      "parameters": {
-        "method": "POST",
-        "url": "http://api:8000/validate",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ $json.body }}",
-        "options": {}
-      },
-      "id": "2",
-      "name": "Validate + Consent",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [-360, 0]
+      "parameters": {"method": "POST", "url": "http://api:8000/validate", "sendBody": true, "specifyBody": "json", "jsonBody": "={{ $('Receive WMO Application').item.json.body }}", "options": {}},
+      "id": "2", "name": "Validate + Consent", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-860, 0]
     },
     {
       "parameters": {
         "conditions": {
           "options": {"caseSensitive": true, "leftValue": "", "typeValidation": "strict"},
-          "conditions": [
-            {
-              "id": "condition-valid",
-              "leftValue": "={{ $json.valid }}",
-              "rightValue": true,
-              "operator": {"type": "boolean", "operation": "true", "singleValue": true}
-            }
-          ],
+          "conditions": [{"id": "condition-valid", "leftValue": "={{ $json.valid }}", "rightValue": true, "operator": {"type": "boolean", "operation": "true", "singleValue": true}}],
           "combinator": "and"
         },
         "options": {}
       },
-      "id": "3",
-      "name": "Valid?",
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.2,
-      "position": [-120, 0]
+      "id": "3", "name": "Valid?", "type": "n8n-nodes-base.if", "typeVersion": 2.2, "position": [-640, 0]
     },
     {
-      "parameters": {
-        "method": "POST",
-        "url": "http://api:8000/process",
-        "sendBody": true,
-        "specifyBody": "json",
-        "jsonBody": "={{ $('Receive WMO Application').item.json.body }}",
-        "options": {}
-      },
-      "id": "4",
-      "name": "Privacy + Policy + AI + Fairness + Risk + Audit",
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [140, -100]
+      "parameters": {"method": "POST", "url": "http://api:8000/pseudonymize", "sendBody": true, "specifyBody": "json", "jsonBody": "={{ $('Receive WMO Application').item.json.body }}", "options": {}},
+      "id": "4", "name": "Minimize + Pseudonymize", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-420, -140]
     },
     {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ $json }}",
-        "options": {"responseCode": 200}
-      },
-      "id": "5",
-      "name": "Return Result",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.4,
-      "position": [420, -100]
+      "parameters": {"url": "=http://api:8000/policy/{{ $json.requestedProvision }}", "options": {}},
+      "id": "5", "name": "Get Policy", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [-200, -140]
     },
     {
-      "parameters": {
-        "respondWith": "json",
-        "responseBody": "={{ { error: 'VALIDATION_FAILED', details: $json.errors } }}",
-        "options": {"responseCode": 422}
-      },
-      "id": "6",
-      "name": "Return Validation Error",
-      "type": "n8n-nodes-base.respondToWebhook",
-      "typeVersion": 1.4,
-      "position": [140, 120]
+      "parameters": {"method": "POST", "url": "http://api:8000/ai/propose", "sendBody": true, "specifyBody": "json", "jsonBody": "={{ { application: $('Minimize + Pseudonymize').item.json, policy: $json } }}", "options": {}},
+      "id": "6", "name": "Generate AI Proposal", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [20, -140]
+    },
+    {
+      "parameters": {"method": "POST", "url": "http://api:8000/fairness/check", "sendBody": true, "specifyBody": "json", "jsonBody": "={{ $json }}", "options": {}},
+      "id": "7", "name": "Fairness Check", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [240, -140]
+    },
+    {
+      "parameters": {"method": "POST", "url": "http://api:8000/risk", "sendBody": true, "specifyBody": "json", "jsonBody": "={{ { application: $('Minimize + Pseudonymize').item.json, fairness: $json } }}", "options": {}},
+      "id": "8", "name": "Calculate Risk", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [460, -140]
+    },
+    {
+      "parameters": {"jsCode": "const minimizedApplication = $('Minimize + Pseudonymize').first().json;\nconst policy = $('Get Policy').first().json;\nconst proposal = $('Generate AI Proposal').first().json;\nconst fairness = $('Fairness Check').first().json;\nconst risk = $input.first().json;\nconst route = risk.requiresHuman ? 'human_review' : 'automatic_message';\nreturn [{ json: { validation: $('Validate + Consent').first().json, minimizedApplication, policy, proposal, fairness, risk, route } }];"},
+      "id": "9", "name": "Route Human or Automatic", "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [680, -140]
+    },
+    {
+      "parameters": {"method": "POST", "url": "http://api:8000/audit", "sendBody": true, "specifyBody": "json", "jsonBody": "={{ { citizenToken: $json.minimizedApplication.citizenToken, risk: $json.risk.risk, riskScore: $json.risk.riskScore, flags: { fairness: $json.fairness, riskReasons: $json.risk.reasons }, proposal: $json.proposal.proposal, rationale: $json.proposal.rationale, route: $json.route } }}", "options": {}},
+      "id": "10", "name": "Write Audit Log", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [900, -140]
+    },
+    {
+      "parameters": {"method": "POST", "url": "http://api:8000/citizen-message", "sendBody": true, "specifyBody": "json", "jsonBody": "={{ { route: $('Route Human or Automatic').item.json.route, proposal: $('Route Human or Automatic').item.json.proposal.proposal } }}", "options": {}},
+      "id": "11", "name": "Create Citizen Message", "type": "n8n-nodes-base.httpRequest", "typeVersion": 4.2, "position": [1120, -140]
+    },
+    {
+      "parameters": {"respondWith": "json", "responseBody": "={{ { ...$('Route Human or Automatic').item.json, citizenMessage: $json.message, audit: $('Write Audit Log').item.json } }}", "options": {"responseCode": 200}},
+      "id": "12", "name": "Return Result", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.4, "position": [1340, -140]
+    },
+    {
+      "parameters": {"respondWith": "json", "responseBody": "={{ { error: 'VALIDATION_FAILED', details: $json.errors } }}", "options": {"responseCode": 422}},
+      "id": "13", "name": "Return Validation Error", "type": "n8n-nodes-base.respondToWebhook", "typeVersion": 1.4, "position": [-420, 140]
     }
   ],
   "connections": {
-    "Receive WMO Application": {
-      "main": [[{"node": "Validate + Consent", "type": "main", "index": 0}]]
-    },
-    "Validate + Consent": {
-      "main": [[{"node": "Valid?", "type": "main", "index": 0}]]
-    },
-    "Valid?": {
-      "main": [
-        [{"node": "Privacy + Policy + AI + Fairness + Risk + Audit", "type": "main", "index": 0}],
-        [{"node": "Return Validation Error", "type": "main", "index": 0}]
-      ]
-    },
-    "Privacy + Policy + AI + Fairness + Risk + Audit": {
-      "main": [[{"node": "Return Result", "type": "main", "index": 0}]]
-    }
+    "Receive WMO Application": {"main": [[{"node": "Validate + Consent", "type": "main", "index": 0}]]},
+    "Validate + Consent": {"main": [[{"node": "Valid?", "type": "main", "index": 0}]]},
+    "Valid?": {"main": [[{"node": "Minimize + Pseudonymize", "type": "main", "index": 0}], [{"node": "Return Validation Error", "type": "main", "index": 0}]]},
+    "Minimize + Pseudonymize": {"main": [[{"node": "Get Policy", "type": "main", "index": 0}]]},
+    "Get Policy": {"main": [[{"node": "Generate AI Proposal", "type": "main", "index": 0}]]},
+    "Generate AI Proposal": {"main": [[{"node": "Fairness Check", "type": "main", "index": 0}]]},
+    "Fairness Check": {"main": [[{"node": "Calculate Risk", "type": "main", "index": 0}]]},
+    "Calculate Risk": {"main": [[{"node": "Route Human or Automatic", "type": "main", "index": 0}]]},
+    "Route Human or Automatic": {"main": [[{"node": "Write Audit Log", "type": "main", "index": 0}]]},
+    "Write Audit Log": {"main": [[{"node": "Create Citizen Message", "type": "main", "index": 0}]]},
+    "Create Citizen Message": {"main": [[{"node": "Return Result", "type": "main", "index": 0}]]}
   },
   "pinData": {},
   "active": false,

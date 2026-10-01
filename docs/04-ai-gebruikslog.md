@@ -1,12 +1,10 @@
-# AI-gebruikslog — invullen met jullie echte gebruik
+# AI-gebruikslog
 
-Gebruik dit document eerlijk. Verwijder hulpmiddelen die jullie niet hebben gebruikt en voeg echte prompts/activiteiten toe.
+Dit log beschrijft het aantoonbare gebruik tijdens de technische controle op 1 oktober 2026. Voeg eventuele andere hulpmiddelen die het team zelf heeft gebruikt eerlijk toe.
 
 | AI-assistent | Waarvoor gebruikt | Wat hebben wij zelf gecontroleerd/aangepast? |
 |---|---|---|
-| ChatGPT | Eerste ontwerp van architectuur, FastAPI-code, testdata, README en documentatiestructuur | Code lokaal uitgevoerd, testcases gecontroleerd, privacyvelden nagelopen, n8n-import getest, teksten aangepast aan eigen presentatie |
-| [eventueel Copilot] | [bijv. autocomplete/refactor] | [wat zelf geverifieerd] |
-| [eventueel andere tool] | [...] | [...] |
+| Codex | Opdracht analyseren, bestaande implementatie reviewen, Docker-opstart herstellen, privacyredactie en tests toevoegen, n8n-workflow uitbreiden en documentatie controleren | Docker Compose schoon gebouwd; zes tests uitgevoerd; alle vier scenario's rechtstreeks en via n8n uitgevoerd; auditinhoud in PostgreSQL gecontroleerd; workflow daadwerkelijk geïmporteerd en gepubliceerd in n8n 2.41.5 |
 
 Verantwoordingszin voor presentatie:
-"We hebben generatieve AI gebruikt als ontwikkelassistent, niet als bron van waarheid. We hebben de gegenereerde code en inhoud zelf getest, aangepast en gekoppeld aan de expliciete eisen uit de opdracht. Voor de demo gebruiken we uitsluitend synthetische gegevens."
+"We hebben generatieve AI gebruikt als ontwikkelassistent, niet als bron van waarheid. De gegenereerde code en inhoud zijn gekoppeld aan de expliciete eisen uit de opdracht en technisch gecontroleerd met geautomatiseerde tests en een end-to-end n8n-demo. Voor de demo gebruiken we uitsluitend synthetische gegevens."

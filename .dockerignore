@@ -1,0 +1,10 @@
+.git
+.idea
+.pytest_cache
+__pycache__
+*.pyc
+*.db
+evidence
+docs
+n8n
+wmo_hackathon_opdracht.md

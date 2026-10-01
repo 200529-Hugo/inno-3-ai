@@ -18,11 +18,20 @@ Vereist: Docker Desktop / Docker Engine met Compose.
 docker compose up --build
 ```
 
+Wacht tot `api`, `postgres` en `n8n` de status `healthy`/`Up` hebben:
+
+```bash
+docker compose ps
+```
+
 Open daarna:
+- Dashboard: http://localhost:8000/
 - API Swagger: http://localhost:8000/docs
 - n8n: http://localhost:5678
 
 Bij eerste n8n-start maak je lokaal een eigenaar-account aan. Importeer `n8n/wmo-workflow.json` en activeer de workflow.
+
+De database heeft een healthcheck; de API start pas nadat PostgreSQL aanvragen kan aannemen. n8n wacht vervolgens tot de API gezond is. Hierdoor werkt ook een eerste schone start betrouwbaar.
 
 ## Snelle API-demo zonder n8n
 
@@ -61,7 +70,16 @@ Als n8n na import een andere test-/production webhook-URL toont, gebruik de URL 
 3. `testcase3-fairness.json` → fairness false + forbiddenTerms + `human_review`.
 4. `testcase4-no-consent.json` → duidelijke validatiefout (422 via `/process`, valid=false via `/validate`).
 
+De vier testcases kunnen ook direct via de knoppen in het dashboard worden uitgevoerd. Het dashboard toont de privacygrens, risicoscore, fairness-uitkomst, burgertekst en recente auditregels.
+
 ## Geautomatiseerde tests
+Via de gebouwde Docker-image (geen lokale Python-installatie nodig):
+
+```bash
+docker compose build api
+docker compose run --rm api python -m pytest -q
+```
+
 Lokaal buiten Docker kan dit met Python 3.12:
 
 ```bash
@@ -73,6 +91,8 @@ pytest -q
 
 ## Privacybewijs voor demo
 De inkomende testcase bevat bewust synthetische velden `name`, `address`, `birthDate` en `citizenId`, zodat je kunt aantonen dat deze niet terugkomen in `minimizedApplication` en niet aan de AI-functie worden doorgegeven. `citizenId` wordt een eenrichtings-token via SHA-256 + salt. Voor productie is een professioneel secrets/key-management- en pseudonimisatieontwerp nodig.
+
+Vrije tekst passeert daarnaast een demonstratieve PII-redactie. Waarden uit de velden naam, adres, geboortedatum en citizenId en herkenbare e-mailadressen, Nederlandse telefoonnummers, postcodes, datums en BSN-achtige nummers worden vóór de AI-grens vervangen. Deze heuristiek is nuttig voor het prototype, maar is geen garantie voor productiegebruik.
 
 ## Fairnessbewijs
 De stub kan alleen voor testcase 3 expres een verboden term injecteren via `injectForbiddenTermForTest`. De fairness-check detecteert beschermde/verboden termen en forceert menselijke review. Dit is bewust een eenvoudige demonstratie; fairness vereist in werkelijkheid bredere tests op bias, context en uitkomsten.

@@ -3,9 +3,11 @@ import os
 import re
 import uuid
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 from pydantic import BaseModel, Field
 from sqlalchemy import JSON, DateTime, Float, String, create_engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column
@@ -34,6 +36,7 @@ class AuditRecord(Base):
 
 Base.metadata.create_all(engine)
 app = FastAPI(title="WMO AI Preparation Service", version="1.0.0")
+STATIC_DIR = Path(__file__).parent / "static"
 
 FORBIDDEN_TERMS = [
     "religie", "geloof", "moslim", "christen", "joods", "ras", "huidskleur",
@@ -73,7 +76,7 @@ class ApplicationIn(BaseModel):
 
 class ValidationResult(BaseModel):
     valid: bool
-    errors: List[str] = []
+    errors: List[str] = Field(default_factory=list)
 
 
 class PseudonymizedApplication(BaseModel):
@@ -128,12 +131,32 @@ def validate_application(a: ApplicationIn) -> ValidationResult:
     return ValidationResult(valid=not errors, errors=errors)
 
 
+def redact_personal_data(text: str, a: ApplicationIn) -> str:
+    """Remove structured and commonly formatted PII before the AI boundary."""
+    redacted = text
+    structured_values = [a.citizenId, a.name, a.address, a.birthDate]
+    for value in structured_values:
+        if value:
+            redacted = re.sub(re.escape(value), "[PERSOONSGEGEVEN VERWIJDERD]", redacted, flags=re.IGNORECASE)
+
+    pii_patterns = [
+        r"\b[1-9][0-9]{8}\b",  # BSN-like number (demo heuristic)
+        r"\b[1-9][0-9]{3}\s?[A-Z]{2}\b",  # Dutch postcode
+        r"\b[\w.+-]+@[\w.-]+\.[A-Za-z]{2,}\b",  # email address
+        r"(?<!\d)(?:\+31|0)[1-9](?:[\s-]?\d){8}(?!\d)",  # Dutch phone number
+        r"\b\d{4}-\d{2}-\d{2}\b",  # ISO date, including birth dates
+    ]
+    for pattern in pii_patterns:
+        redacted = re.sub(pattern, "[PERSOONSGEGEVEN VERWIJDERD]", redacted, flags=re.IGNORECASE)
+    return redacted
+
+
 def minimize(a: ApplicationIn) -> PseudonymizedApplication:
     return PseudonymizedApplication(
         citizenToken=token_for(a.citizenId),
         ageGroup=a.ageGroup,
         requestedProvision=a.requestedProvision,
-        problemDescription=a.problemDescription,
+        problemDescription=redact_personal_data(a.problemDescription, a),
         severity=a.severity,
         multipleProblems=a.multipleProblems,
         injectForbiddenTermForTest=a.injectForbiddenTermForTest,
@@ -178,6 +201,11 @@ def calculate_risk(a: PseudonymizedApplication, fair: FairnessResult) -> RiskRes
 @app.get("/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/", include_in_schema=False)
+def dashboard():
+    return FileResponse(STATIC_DIR / "index.html")
 
 
 @app.post("/validate", response_model=ValidationResult)
