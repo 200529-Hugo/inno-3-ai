@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WMO Kompas — aanvraag doen</title>
+  <link rel="stylesheet" href="/assets/portal.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Hoofdnavigatie">
+      <a class="brand" href="/aanvraag"><span class="brand-mark">W</span>WMO Kompas</a>
+      <div class="nav-links"><a class="active" href="/aanvraag">Aanvraag doen</a><a href="/beoordelaar">Voor medewerkers</a><a href="/demo">Demo</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <section class="intro">
+      <div><div class="eyebrow">WMO-aanvraag</div><h1>Vertel ons welke ondersteuning u nodig heeft.</h1><p>Vul de aanvraag rustig in. AI helpt alleen om uw informatie te ordenen. Een medewerker blijft verantwoordelijk voor de beoordeling.</p></div>
+      <div class="safety"><strong>Demonstratieomgeving</strong><br>Gebruik uitsluitend verzonnen gegevens. Dien hier geen echte aanvraag of persoonsgegevens in.</div>
+    </section>
+
+    <section id="applicationArea" class="layout">
+      <article class="card">
+        <div class="card-head"><h2>Uw situatie</h2><p>Velden met een sterretje zijn verplicht.</p></div>
+        <div class="card-body">
+          <form id="citizenForm">
+            <div class="form-grid">
+              <label>Naam *<input name="name" value="Test Persoon" autocomplete="off" required></label>
+              <label>Geboortedatum *<input name="birthDate" type="date" value="1955-01-01" required></label>
+              <label class="full">Adres *<input name="address" value="Teststraat 1, 1234 AB Demostad" autocomplete="off" required></label>
+              <label>Welke hulp vraagt u aan? *
+                <select name="requestedProvision" required><option value="huishoudelijke_hulp">Huishoudelijke hulp</option><option value="rolstoel">Rolstoel</option><option value="woningaanpassing">Woningaanpassing</option></select>
+              </label>
+              <label>Hoe dringend is uw situatie? *
+                <select name="severity" required><option value="laag">Niet dringend</option><option value="middel">Dringend</option><option value="hoog">Zeer dringend</option></select>
+              </label>
+              <label class="full">Beschrijf waar u tegenaan loopt *<textarea name="problemDescription" minlength="5" required>Door beperkte mobiliteit lukt zwaar huishoudelijk werk niet meer zelfstandig.</textarea></label>
+              <label class="check full"><input name="multipleProblems" type="checkbox"><span>Mijn aanvraag gaat over meerdere problemen of vormen van ondersteuning.</span></label>
+              <label class="check full"><input name="aiConsent" type="checkbox" checked required><span>Ik geef toestemming om AI te gebruiken voor het voorbereiden van deze demonstratieaanvraag. Ik begrijp dat AI niet beslist.</span></label>
+            </div>
+            <button id="submitButton" class="button submit" type="submit">Aanvraag verzenden</button>
+          </form>
+          <div id="formError" class="notice error hidden" role="alert" style="margin-top:14px"></div>
+        </div>
+      </article>
+
+      <aside class="card">
+        <div class="card-head"><h3>Wat gebeurt er daarna?</h3></div>
+        <div class="card-body steps">
+          <div class="step"><div class="step-number">1</div><div><strong>Privacycontrole</strong><span>Naam, adres en exacte geboortedatum gaan niet naar de AI-stap.</span></div></div>
+          <div class="step"><div class="step-number">2</div><div><strong>Voorbereiding</strong><span>De aanvraag wordt vergeleken met de relevante beleidsregel.</span></div></div>
+          <div class="step"><div class="step-number">3</div><div><strong>Veiligheidscontrole</strong><span>De uitkomst wordt gecontroleerd op risico en oneerlijke kenmerken.</span></div></div>
+          <div class="step"><div class="step-number">4</div><div><strong>Menselijke verantwoordelijkheid</strong><span>Bij complexe of risicovolle situaties beoordeelt altijd een medewerker de aanvraag.</span></div></div>
+        </div>
+      </aside>
+    </section>
+
+    <section id="resultArea" class="card result hidden">
+      <div class="card-body">
+        <div id="resultStatus" class="notice success"></div>
+        <h2>Uw aanvraag is ontvangen</h2>
+        <p id="citizenMessage"></p>
+        <div class="result-grid">
+          <div class="result-item"><span>Referentienummer</span><strong id="reference"></strong></div>
+          <div class="result-item"><span>Vervolg</span><strong id="nextStep"></strong></div>
+        </div>
+        <div class="notice"><strong>Goed om te weten</strong><br>Het getoonde voorstel is geen formeel besluit. Een bevoegde medewerker blijft verantwoordelijk.</div>
+        <button id="newApplication" class="button secondary" style="margin-top:16px">Nieuwe demo-aanvraag</button>
+      </div>
+    </section>
+  </main>
+  <footer class="footer">Onderwijsprototype · geen echte WMO-aanvragen · AI ondersteunt, een mens beslist</footer>
+  <script>
+    const form = document.querySelector('#citizenForm');
+    const errorBox = document.querySelector('#formError');
+    const escapeText = value => String(value ?? '');
+
+    function ageGroup(dateString) {
+      const birth = new Date(dateString + 'T00:00:00');
+      const now = new Date();
+      let age = now.getFullYear() - birth.getFullYear();
+      if (now < new Date(now.getFullYear(), birth.getMonth(), birth.getDate())) age--;
+      if (age < 18) return '0-17'; if (age < 35) return '18-34'; if (age < 50) return '35-49';
+      if (age < 65) return '50-64'; if (age < 75) return '65-74'; return '75+';
+    }
+
+    form.addEventListener('submit', async event => {
+      event.preventDefault();
+      errorBox.classList.add('hidden');
+      const button = document.querySelector('#submitButton');
+      button.disabled = true; button.textContent = 'Veilig verzenden…';
+      const data = new FormData(form);
+      const payload = {
+        citizenId: `SYNTH-WEB-${Date.now()}`,
+        name: data.get('name'), address: data.get('address'), birthDate: data.get('birthDate'),
+        ageGroup: ageGroup(data.get('birthDate')), requestedProvision: data.get('requestedProvision'),
+        problemDescription: data.get('problemDescription'), severity: data.get('severity'),
+        multipleProblems: data.has('multipleProblems'), aiConsent: data.has('aiConsent')
+      };
+      try {
+        const response = await fetch('/process', {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        const result = await response.json();
+        if (!response.ok) throw new Error(Array.isArray(result.detail) ? result.detail.join(' ') : 'De aanvraag kon niet worden verwerkt.');
+        document.querySelector('#applicationArea').classList.add('hidden');
+        document.querySelector('#resultArea').classList.remove('hidden');
+        document.querySelector('#citizenMessage').textContent = result.citizenMessage;
+        document.querySelector('#reference').textContent = result.minimizedApplication.citizenToken;
+        document.querySelector('#nextStep').textContent = result.route === 'human_review' ? 'Een medewerker beoordeelt uw aanvraag' : 'De voorbereiding is afgerond';
+        const status = document.querySelector('#resultStatus');
+        status.className = `notice ${result.route === 'human_review' ? 'warning' : 'success'}`;
+        status.textContent = result.route === 'human_review' ? 'Uw aanvraag staat klaar voor menselijke beoordeling.' : 'Uw aanvraag heeft een laag risicoprofiel.';
+      } catch (error) {
+        errorBox.textContent = escapeText(error.message); errorBox.classList.remove('hidden');
+      } finally { button.disabled = false; button.textContent = 'Aanvraag verzenden'; }
+    });
+    document.querySelector('#newApplication').addEventListener('click', () => {
+      document.querySelector('#resultArea').classList.add('hidden'); document.querySelector('#applicationArea').classList.remove('hidden');
+    });
+  </script>
+</body>
+</html>

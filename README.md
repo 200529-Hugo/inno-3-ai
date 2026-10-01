@@ -7,7 +7,7 @@ Gebruik uitsluitend synthetische testdata. Dit is een onderwijsprototype, geen p
 
 ## Architectuur
 - n8n: workflow-entry en validatieroutering
-- FastAPI: validatie, pseudonimisering, policy mock, AI-stub, fairness, risico, burgerbericht en audit API
+- FastAPI in MVC-opzet: controllers voor HTTP, modellen voor contracten/data, services voor bedrijfslogica en het dashboard als view
 - PostgreSQL: audit-log
 - Docker Compose: reproduceerbare installatie
 
@@ -25,7 +25,9 @@ docker compose ps
 ```
 
 Open daarna:
-- Dashboard: http://localhost:8000/
+- Burgerportaal: http://localhost:8000/aanvraag
+- Behandelaarswerkplek: http://localhost:8000/beoordelaar
+- Technisch demodashboard: http://localhost:8000/demo
 - API Swagger: http://localhost:8000/docs
 - n8n: http://localhost:5678
 
@@ -70,7 +72,7 @@ Als n8n na import een andere test-/production webhook-URL toont, gebruik de URL 
 3. `testcase3-fairness.json` → fairness false + forbiddenTerms + `human_review`.
 4. `testcase4-no-consent.json` → duidelijke validatiefout (422 via `/process`, valid=false via `/validate`).
 
-De vier testcases kunnen ook direct via de knoppen in het dashboard worden uitgevoerd. Het dashboard toont de privacygrens, risicoscore, fairness-uitkomst, burgertekst en recente auditregels.
+De vier testcases kunnen ook direct via de knoppen in het technische demodashboard worden uitgevoerd. Het burgerportaal biedt een eenvoudige aanvraagflow. De behandelaarswerkplek toont alleen zaken met `human_review` en laat een medewerker een gemotiveerde beslissing vastleggen.
 
 ## Geautomatiseerde tests
 Via de gebouwde Docker-image (geen lokale Python-installatie nodig):
@@ -101,7 +103,13 @@ De stub kan alleen voor testcase 3 expres een verboden term injecteren via `inje
 `severity=hoog`, `multipleProblems=true`, fairness failure of een hoge risicoscore leidt naar `human_review`. De AI doet alleen voorbereiding; een bevoegde medewerker neemt de formele beslissing.
 
 ## Bestandsstructuur
-- `app/main.py` — backend
+- `app/main.py` — minimale FastAPI-appopbouw
+- `app/controllers/` — API-routes en dashboardroute
+- `app/models/` — Pydantic-contracten en SQLAlchemy-auditmodel
+- `app/services/` — validatie, privacy, beleid, AI, fairness, risico, audit, berichten en procesorkestratie
+- `app/static/` — dashboard-view
+- `app/database.py` — databaseverbinding en initialisatie
+- `app/config.py` — demo-configuratie, beleidsregels en fairness-termen
 - `n8n/wmo-workflow.json` — importeerbare workflow
 - `examples/` — vier demo-inputs
 - `tests/` — vier geautomatiseerde tests

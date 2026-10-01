@@ -25,6 +25,13 @@ def test_dashboard_is_available():
     assert r.status_code == 200
     assert "WMO Kompas" in r.text
 
+    citizen = client.get("/aanvraag")
+    reviewer = client.get("/beoordelaar")
+    demo = client.get("/demo")
+    assert "Aanvraag verzenden" in citizen.text
+    assert "Reviewwachtrij" in reviewer.text
+    assert "Nieuwe demo-aanvraag" in demo.text
+
 
 def test_1_low_risk_auto_message():
     r = client.post("/process", json=BASE)
@@ -89,3 +96,28 @@ def test_audit_contains_required_decision_fields():
     assert record["proposal"]
     assert record["rationale"]
     assert record["route"] == "automatic_message"
+
+
+def test_human_reviewer_can_record_decision():
+    response = client.post("/process", json=BASE | {"severity": "hoog"})
+    assert response.status_code == 200
+    audit_id = response.json()["audit"]["auditId"]
+
+    queue = client.get("/reviews")
+    assert queue.status_code == 200
+    assert any(item["auditId"] == audit_id and item["status"] == "open" for item in queue.json())
+
+    decision = client.post(
+        f"/reviews/{audit_id}/decision",
+        json={
+            "decision": "meer_informatie",
+            "notes": "Aanvullende informatie over de woonsituatie nodig.",
+            "reviewerName": "Test behandelaar",
+        },
+    )
+    assert decision.status_code == 200
+    assert decision.json()["decision"] == "meer_informatie"
+
+    updated_case = next(item for item in client.get("/reviews").json() if item["auditId"] == audit_id)
+    assert updated_case["status"] == "afgerond"
+    assert updated_case["decision"]["reviewerName"] == "Test behandelaar"

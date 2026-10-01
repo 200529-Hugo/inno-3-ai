@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="nl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>WMO Kompas — behandelaarswerkplek</title>
+  <link rel="stylesheet" href="/assets/portal.css">
+</head>
+<body>
+  <header class="site-header">
+    <nav class="nav" aria-label="Hoofdnavigatie">
+      <a class="brand" href="/beoordelaar"><span class="brand-mark">W</span>WMO Kompas</a>
+      <div class="nav-links"><a href="/aanvraag">Burgerportaal</a><a class="active" href="/beoordelaar">Behandelaarswerkplek</a><a href="/demo">Demo</a></div>
+    </nav>
+  </header>
+  <main class="page">
+    <section class="intro">
+      <div><div class="eyebrow">Menselijke beoordeling</div><h1>Werkvoorraad voor behandelaars.</h1><p>Bekijk risicovolle of geflagde aanvragen, controleer de AI-onderbouwing en leg een menselijke beslissing vast.</p></div>
+      <button id="refreshButton" class="button secondary">Werkvoorraad vernieuwen</button>
+    </section>
+
+    <section class="metrics" aria-label="Werkvoorraadoverzicht">
+      <div class="metric"><span>Totaal voor review</span><strong id="totalMetric">—</strong></div>
+      <div class="metric"><span>Openstaand</span><strong id="openMetric">—</strong></div>
+      <div class="metric"><span>Afgerond</span><strong id="doneMetric">—</strong></div>
+    </section>
+
+    <section class="workspace">
+      <article class="card">
+        <div class="card-head"><h2>Reviewwachtrij</h2><p>Nieuwste aanvraag bovenaan.</p></div>
+        <div id="queue" class="queue"><div class="empty">Werkvoorraad laden…</div></div>
+      </article>
+      <article class="card">
+        <div class="card-head"><h2>Beoordeling</h2><p>AI geeft een voorstel; u neemt en motiveert de beslissing.</p></div>
+        <div id="detail" class="empty">Selecteer een aanvraag uit de wachtrij.</div>
+      </article>
+    </section>
+  </main>
+  <footer class="footer">Onderwijsprototype · gebruik uitsluitend synthetische gegevens · menselijke eindverantwoordelijkheid</footer>
+  <script>
+    let cases = [];
+    let selectedId = null;
+    const escapeHtml = value => String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+
+    async function loadCases(keepSelection = true) {
+      const response = await fetch('/reviews');
+      cases = await response.json();
+      document.querySelector('#totalMetric').textContent = cases.length;
+      document.querySelector('#openMetric').textContent = cases.filter(item => item.status === 'open').length;
+      document.querySelector('#doneMetric').textContent = cases.filter(item => item.status === 'afgerond').length;
+      renderQueue();
+      if (keepSelection && selectedId && cases.some(item => item.auditId === selectedId)) selectCase(selectedId);
+      else if (cases.length) selectCase(cases.find(item => item.status === 'open')?.auditId || cases[0].auditId);
+      else document.querySelector('#detail').innerHTML = '<div>Geen aanvragen wachten op menselijke beoordeling.</div>';
+    }
+
+    function renderQueue() {
+      const queue = document.querySelector('#queue');
+      if (!cases.length) { queue.innerHTML = '<div class="empty">Geen reviewzaken gevonden.</div>'; return; }
+      queue.innerHTML = cases.map(item => {
+        const fairnessTerms = item.flags?.fairness?.forbiddenTerms || [];
+        return `<button class="case ${item.auditId === selectedId ? 'selected' : ''}" data-id="${escapeHtml(item.auditId)}">
+          <div class="case-top"><strong>${escapeHtml(item.citizenToken)}</strong><span class="pill ${item.status === 'open' ? 'open' : 'done'}">${item.status}</span></div>
+          <p>${new Date(item.createdAt).toLocaleString('nl-NL')} · risico ${Math.round(item.riskScore*100)}%${fairnessTerms.length ? ' · flag: ' + escapeHtml(fairnessTerms.join(', ')) : ''}</p>
+        </button>`;
+      }).join('');
+      queue.querySelectorAll('[data-id]').forEach(button => button.addEventListener('click', () => selectCase(button.dataset.id)));
+    }
+
+    function selectCase(id) {
+      selectedId = id;
+      renderQueue();
+      const item = cases.find(current => current.auditId === id);
+      if (!item) return;
+      const fairness = item.flags?.fairness || {};
+      const reasons = item.flags?.riskReasons || [];
+      const completed = item.decision;
+      document.querySelector('#detail').className = 'detail';
+      document.querySelector('#detail').innerHTML = `
+        <span class="pill ${item.status === 'open' ? 'open' : 'done'}">${item.status}</span>
+        <h2>${escapeHtml(item.citizenToken)}</h2><p style="color:var(--muted);margin:0">Ontvangen ${new Date(item.createdAt).toLocaleString('nl-NL')}</p>
+        <div class="facts"><div class="fact"><span>Risico</span><strong>${escapeHtml(item.risk)} · ${Math.round(item.riskScore*100)}%</strong></div><div class="fact"><span>Fairness</span><strong>${fairness.passed ? 'Akkoord' : 'Flag: ' + escapeHtml((fairness.forbiddenTerms || []).join(', '))}</strong></div><div class="fact"><span>Redenen</span><strong>${escapeHtml(reasons.join(', ') || 'Geen')}</strong></div></div>
+        <div class="detail-section"><h3>Niet-bindend AI-voorstel</h3><p>${escapeHtml(item.proposal)}</p></div>
+        <div class="detail-section"><h3>Onderbouwing</h3><p>${escapeHtml(item.rationale)}</p></div>
+        ${completed ? `<div class="detail-section"><div class="notice success"><strong>Beslissing: ${escapeHtml(completed.decision.replace('_',' '))}</strong><br>${escapeHtml(completed.notes)}<br><small>Vastgelegd door ${escapeHtml(completed.reviewerName)} op ${new Date(completed.createdAt).toLocaleString('nl-NL')}</small></div><button id="editDecision" class="button secondary" style="margin-top:12px">Beslissing aanpassen</button></div>` : decisionForm(item.auditId)}`;
+      if (completed) document.querySelector('#editDecision').addEventListener('click', () => showDecisionForm(item.auditId));
+      else bindDecisionButtons(item.auditId);
+    }
+
+    function decisionForm(id) {
+      return `<div id="decisionArea" class="detail-section"><h3>Menselijke beslissing vastleggen</h3><div class="form-grid"><label>Naam of initialen<input id="reviewerName" value="Demo behandelaar"></label><label class="full">Motivering<textarea id="reviewNotes" placeholder="Leg uit welke informatie en beleidsregel doorslaggevend waren."></textarea></label></div><div id="decisionError" class="notice error hidden" role="alert" style="margin-top:10px"></div><div class="actions"><button class="button" data-decision="goedgekeurd">Goedkeuren</button><button class="button amber" data-decision="meer_informatie">Meer informatie nodig</button><button class="button danger" data-decision="afgewezen">Afwijzen</button></div></div>`;
+    }
+
+    function showDecisionForm(id) {
+      const existing = document.querySelector('#decisionArea');
+      if (existing) return;
+      document.querySelector('#editDecision').parentElement.insertAdjacentHTML('beforeend', decisionForm(id));
+      document.querySelector('#editDecision').remove(); bindDecisionButtons(id);
+    }
+
+    function bindDecisionButtons(id) {
+      document.querySelectorAll('[data-decision]').forEach(button => button.addEventListener('click', () => saveDecision(id, button.dataset.decision)));
+    }
+
+    async function saveDecision(id, decision) {
+      const notes = document.querySelector('#reviewNotes').value.trim();
+      const reviewerName = document.querySelector('#reviewerName').value.trim();
+      const error = document.querySelector('#decisionError');
+      if (notes.length < 3 || reviewerName.length < 2) { error.textContent = 'Vul uw naam/initialen en een korte motivering in.'; error.classList.remove('hidden'); return; }
+      const response = await fetch(`/reviews/${encodeURIComponent(id)}/decision`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({decision, notes, reviewerName})});
+      if (!response.ok) { error.textContent = 'De beslissing kon niet worden opgeslagen.'; error.classList.remove('hidden'); return; }
+      await loadCases(true);
+    }
+
+    document.querySelector('#refreshButton').addEventListener('click', () => loadCases(false));
+    loadCases(false).catch(() => { document.querySelector('#queue').innerHTML = '<div class="empty">Werkvoorraad kon niet worden geladen.</div>'; });
+  </script>
+</body>
+</html>
