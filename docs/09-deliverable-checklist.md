@@ -1,6 +1,6 @@
 # Deliverable-checklist
 
-- [x] 1. BPMN-diagram — `docs/wmo-process.bpmn` + Mermaid-weergave in `docs/07-bpmn-and-architecture.md`; maak nog een presentatiescreenshot
+- [x] 1. BPMN-diagram — `docs/wmo-process.bpmn` + presentabele Mermaid-weergave in `docs/11-flowchart-mermaid.md`; maak nog een presentatiescreenshot
 - [x] 2. Architectuurdiagram — `docs/07-bpmn-and-architecture.md`; maak nog een presentatiescreenshot
 - [x] 3. n8n-workflow JSON — `n8n/wmo-workflow.json`, succesvol geïmporteerd en end-to-end getest met n8n 2.41.5
 - [x] 4. Endpoints — `app/main.py` + `/docs` Swagger; geautomatiseerd getest

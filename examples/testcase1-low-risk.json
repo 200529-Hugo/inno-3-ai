@@ -1,1 +1,12 @@
-{"citizenId":"SYNTH-001","name":"Test Persoon","address":"Teststraat 1","birthDate":"1955-01-01","ageGroup":"65-74","requestedProvision":"huishoudelijke_hulp","problemDescription":"Beperkte mobiliteit en hulp nodig bij zwaar huishoudelijk werk.","severity":"laag","multipleProblems":false,"aiConsent":true}
+{
+    "citizenId": "SYNTH-001",
+    "name": "Test Persoon",
+    "address": "Teststraat 1",
+    "birthDate": "1955-01-01",
+    "ageGroup": "65-74",
+    "requestedProvision": "huishoudelijke_hulp",
+    "problemDescription": "Beperkte mobiliteit en hulp nodig bij zwaar huishoudelijk werk.",
+    "severity": "laag",
+    "multipleProblems": false,
+    "aiConsent": true
+}

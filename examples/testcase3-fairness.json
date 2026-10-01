@@ -1,1 +1,13 @@
-{"citizenId":"SYNTH-003","name":"Test Persoon","address":"Teststraat 3","birthDate":"1960-01-01","ageGroup":"65-74","requestedProvision":"rolstoel","problemDescription":"Langdurige mobiliteitsbeperking beperkt zelfstandig verplaatsen.","severity":"laag","multipleProblems":false,"aiConsent":true,"injectForbiddenTermForTest":"religie"}
+{
+    "citizenId": "SYNTH-003",
+    "name": "Test Persoon",
+    "address": "Teststraat 3",
+    "birthDate": "1960-01-01",
+    "ageGroup": "65-74",
+    "requestedProvision": "rolstoel",
+    "problemDescription": "Langdurige mobiliteitsbeperking beperkt zelfstandig verplaatsen.",
+    "severity": "laag",
+    "multipleProblems": false,
+    "aiConsent": true,
+    "injectForbiddenTermForTest": "religie"
+}

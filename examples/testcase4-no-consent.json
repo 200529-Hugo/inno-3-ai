@@ -1,1 +1,12 @@
-{"citizenId":"SYNTH-004","name":"Test Persoon","address":"Teststraat 4","birthDate":"1970-01-01","ageGroup":"50-64","requestedProvision":"huishoudelijke_hulp","problemDescription":"Ondersteuning nodig bij huishoudelijke taken.","severity":"laag","multipleProblems":false,"aiConsent":false}
+{
+    "citizenId": "SYNTH-004",
+    "name": "Test Persoon",
+    "address": "Teststraat 4",
+    "birthDate": "1970-01-01",
+    "ageGroup": "50-64",
+    "requestedProvision": "huishoudelijke_hulp",
+    "problemDescription": "Ondersteuning nodig bij huishoudelijke taken.",
+    "severity": "laag",
+    "multipleProblems": false,
+    "aiConsent": false
+}
